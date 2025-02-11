@@ -119,7 +119,7 @@ export default async (req, res) => {
     // 4. Retrieve user interests from Supabase
     const { data: userInterests, error } = await supabase
     .from('user_interests')
-    .select('*');
+    .select('array_agg(DISTINCT unnest(interests)) as unique_interests');
 
     console.log("User interests full list:", userInterests);
 
