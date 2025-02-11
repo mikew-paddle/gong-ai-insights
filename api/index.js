@@ -122,7 +122,7 @@ export default async (req, res) => {
         ) AS unique_interests
       `);
 
-    console.log("User interests full list:", userInterests);
+    console.log("User interests full list:", interestData);
 
     if (error) {
       console.error("Error fetching user interests:", error);
