@@ -114,7 +114,7 @@ export default async (req, res) => {
       // --- End of saving transcripts ---
 
     // 3. Process transcripts and summarize (IMPLEMENT THIS LOGIC)
-    // const summaries = {}; // Placeholder for summaries
+    //const summaries = {}; // Placeholder for summaries
 
     // 4. Retrieve user interests from Supabase
     const { data: userInterests, error } = await supabase
@@ -130,7 +130,7 @@ export default async (req, res) => {
 
 
     // 5. Send messages to Slack
-    const slackWebhookUrl = process.env.SLACK_WEBHOOK_URL;
+    /* const slackWebhookUrl = process.env.SLACK_WEBHOOK_URL;
 
     for (const user of userInterests) {
       const userSummary = summaries[user.interests]; // Assuming interest-based summaries
@@ -157,7 +157,7 @@ export default async (req, res) => {
           console.error('Error sending to Slack:', error);
         }
       }
-    }
+    } */
 
 
     res.status(200).json({ message: 'Processing complete' });
