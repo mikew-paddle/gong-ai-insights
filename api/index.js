@@ -5,6 +5,8 @@ import fetch from 'node-fetch';
 const supabaseUrl = process.env.SUPABASE_URL;
 const supabase = createClient(supabaseUrl, process.env.SUPABASE_SERVICE_ROLE_KEY);
 
+const BATCH_SIZE = 25;
+
 export default async (req, res) => {
   try {
     const accessKey = process.env.GONG_ACCESS_KEY;
@@ -18,67 +20,86 @@ export default async (req, res) => {
 
     const gongApiEndpoint = 'https://api.gong.io/v2/calls/transcript'; // Correct endpoint with filtering
 
-    const requestBody = {
-      filter: {
-        fromDateTime: "2025-02-10T00:00:00-08:00", // Your date range
-        toDateTime: "2025-02-11T00:00:00-08:00"  // Your date range
-      }
-    };
+    let nextCursor = null;
+    let allTranscripts =;
 
-    const response = await fetch(gongApiEndpoint, {
-      method: 'POST', 
-      headers: {
-        'Authorization': `Basic ${base64EncodedAuth}`, 
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(requestBody) // Include the filter in the body
-    });
+    do {
+      const requestBody = {
+        filter: {
+          fromDateTime: "2025-02-10T00:00:00-08:00",
+          toDateTime: "2025-02-11T00:00:00-08:00"
+        },
+        cursor: nextCursor,
+        pageSize: BATCH_SIZE,
+      };
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(`Gong API error: ${response.status} - ${errorText}`);
-    }
+      const response = await fetch(gongApiEndpoint, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Basic ${base64EncodedAuth}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(requestBody)
+      });
 
-    const transcriptsData = await response.json();
-    const transcripts = transcriptsData.callTranscripts;
-
-    console.log("Transcripts:", transcripts);
-
-// --- Save transcripts to Supabase (with check for existing call_id) ---
-    for (const transcript of transcripts) {
-      // Check if call_id already exists
-      const { data: existingTranscript, error: checkError } = await supabase
-      .from('call_transcripts')
-      .select('call_id')
-      .eq('call_id', transcript.callId)
-      .maybeSingle(); // Fetch only one row (if it exists)
-
-      if (checkError) {
-        console.error("Error checking for existing call_id:", checkError);
-        // Handle the error as needed (e.g., skip to the next transcript)
-        continue;
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Gong API error: ${response.status} - ${errorText}`);
       }
 
-      if (existingTranscript) {
-        console.log(`Call ${transcript.callId} already exists in the database. Skipping.`);
-        continue; // Skip to the next transcript if it already exists
+      const transcriptsData = await response.json();
+      const transcripts = transcriptsData.callTranscripts;
+
+      allTranscripts = allTranscripts.concat(transcripts);
+
+      nextCursor = transcriptsData.cursor;
+
+      console.log("Current batch of transcripts:", transcripts);
+      console.log("Next Cursor:", nextCursor);
+
+      // --- Save transcripts to Supabase (with batch insertion and check for existing call_id) ---
+      const batches =;
+      let currentBatch =;
+
+      for (let i = 0; i < transcripts.length; i++) {
+        // Check if call_id already exists
+        const { data: existingTranscript, error: checkError } = await supabase
+        .from('call_transcripts')
+        .select('call_id')
+        .eq('call_id', transcripts[i].callId)
+        .maybeSingle();
+
+        if (checkError) {
+          console.error("Error checking for existing call_id:", checkError);
+          continue;
+        }
+
+        if (existingTranscript) {
+          console.log(`Call ${transcripts[i].callId} already exists in the database. Skipping.`);
+          continue;
+        }
+
+        currentBatch.push({
+          call_id: transcripts[i].callId,
+          transcript: JSON.stringify(transcripts[i].transacript),
+        });
+
+        if (currentBatch.length === BATCH_SIZE || i === transcripts.length - 1) {
+          batches.push(currentBatch);
+          currentBatch =;
+        }
       }
 
-      // If the call_id doesn't exist, insert the transcript
-      const { error: insertError } = await supabase
-      .from('call_transcripts')
-      .insert([
-          {
-            call_id: transcript.callId,
-            transcript: JSON.stringify(transcript),
-          }
-        ]);
+      for (const batch of batches) {
+        const { error } = await supabase
+        .from('call_transcripts')
+        .insert(batch);
 
-      if (insertError) {
-        console.error("Error saving transcript:", insertError);
+        if (error) {
+          console.error("Error saving batch:", error);
+        }
       }
-    }
-    // --- End of saving transcripts ---
+      // --- End of saving transcripts ---
 
     console.log("Transcripts:", transcripts); // Check the structure of the transcripts data
 
