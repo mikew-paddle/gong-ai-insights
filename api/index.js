@@ -9,6 +9,8 @@ const BATCH_SIZE = 25;
 
 export default async (req, res) => {
   try {
+    /* 
+
     const accessKey = process.env.GONG_ACCESS_KEY;
     const accessKeySecret = process.env.GONG_ACCESS_KEY_SECRET;
 
@@ -113,17 +115,38 @@ export default async (req, res) => {
     // 3. Process transcripts and summarize (IMPLEMENT THIS LOGIC)
     //const summaries = {}; // Placeholder for summaries
 
-    // 4. Retrieve user interests from Supabase
-    const { data: userInterests, error } = await supabase
-    .rpc('unnest_interests')
+    */
+
+    
+    // --- Fetch User Interests ---
+    const { data: userInterests, error: interestsError } = await supabase.rpc('unnest_interests');
+
+    if (interestsError) {
+      console.error("Error fetching user interests:", interestsError);
+      return res.status(500).json({ error: 'Failed to fetch user interests' });
+    }
 
     const interestArray = userInterests.map(row => row.interest);
-
     console.log("User interests full list:", interestArray);
 
-    if (error) {
-      console.error("Error fetching user interests:", error);
-      return res.status(500).json({ error: 'Failed to fetch user interests' });
+    // --- Perform Zero-Shot Classification ---
+    async function classifyTranscript(text, keywords) {
+      const prompt = `Analyze this call transcript and identify which of the following topics it relates to: ${keywords.join(", ")}.
+      Transcript: ${text}
+      Return only the relevant topics as a JSON array.`;
+
+      try {
+        const response = await openai.chat.completions.create({
+          model: "gpt-4-turbo",
+          messages: [{ role: "user", content: prompt }],
+          response_format: "json",
+        });
+
+        return JSON.parse(response.choices[0].message.content);
+      } catch (error) {
+        console.error("Error in Zero-Shot Classification:", error);
+        return [];
+      }
     }
 
 
