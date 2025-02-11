@@ -171,40 +171,11 @@ export default async (req, res) => {
         if (error) {
           console.error(`Error updating transcript ${transcriptData.callId}:`, error);
         }
-        */
+        
       }
     }
+    */
 
-
-    // 5. Send messages to Slack
-    /* const slackWebhookUrl = process.env.SLACK_WEBHOOK_URL;
-
-    for (const user of userInterests) {
-      const userSummary = summaries[user.interests]; // Assuming interest-based summaries
-      if (userSummary) {
-        const slackMessage = {
-          text: `New Gong Call Summary for ${user.email}:\n${userSummary}`,
-        };
-
-        try {
-          const response = await fetch(slackWebhookUrl, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(slackMessage),
-          });
-
-          if (!response.ok) {
-            console.error('Error sending to Slack:', response.status, await response.text());
-          } else {
-            console.log('Message sent to Slack');
-          }
-        } catch (error) {
-          console.error('Error sending to Slack:', error);
-        }
-      }
-    } */
 
 
     res.status(200).json({ message: 'Processing complete' });
