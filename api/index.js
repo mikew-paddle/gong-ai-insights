@@ -27,9 +27,9 @@ export default async (req, res) => {
     };
 
     const response = await fetch(gongApiEndpoint, {
-      method: 'POST', // or GET, depending on Gong API requirements
+      method: 'POST', 
       headers: {
-        'Authorization': `Basic ${base64EncodedAuth}`, // Use Basic auth
+        'Authorization': `Basic ${base64EncodedAuth}`, 
         'Content-Type': 'application/json'
       },
       body: JSON.stringify(requestBody) // Include the filter in the body
