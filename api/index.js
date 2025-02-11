@@ -8,7 +8,15 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 
 export default async (req, res) => {
   try {
-    const gongApiKey = process.env.GONG_API_KEY;
+    const accessKey = process.env.GONG_ACCESS_KEY;
+    const accessKeySecret = process.env.GONG_ACCESS_KEY_SECRET;
+
+    // Construct the basic auth string
+    const basicAuthString = `<span class="math-inline">\{accessKey\}\:</span>{accessKeySecret}`;
+
+    // Encode the basic auth string in Base64
+    const base64EncodedAuth = Buffer.from(basicAuthString).toString('base64');
+
     const gongApiEndpoint = 'https://api.gong.io/v2/calls/transcript'; // Correct endpoint with filtering
 
     const requestBody = {
@@ -21,7 +29,7 @@ export default async (req, res) => {
     const response = await fetch(gongApiEndpoint, {
       method: 'POST', // or GET, depending on Gong API requirements
       headers: {
-        'Authorization': `Bearer ${gongApiKey}`,
+        'Authorization': `Basic ${base64EncodedAuth}`, // Use Basic auth
         'Content-Type': 'application/json'
       },
       body: JSON.stringify(requestBody) // Include the filter in the body
