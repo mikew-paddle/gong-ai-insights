@@ -21,7 +21,7 @@ export default async (req, res) => {
     const gongApiEndpoint = 'https://api.gong.io/v2/calls/transcript'; // Correct endpoint with filtering
 
     let nextCursor = null;
-    let allTranscripts =;
+    let allTranscripts =[];
 
     do {
       const requestBody = {
@@ -58,8 +58,8 @@ export default async (req, res) => {
       console.log("Next Cursor:", nextCursor);
 
       // --- Save transcripts to Supabase (with batch insertion and check for existing call_id) ---
-      const batches =;
-      let currentBatch =;
+      const batches =[];
+      let currentBatch =[];
 
       for (let i = 0; i < transcripts.length; i++) {
         // Check if call_id already exists
@@ -86,7 +86,7 @@ export default async (req, res) => {
 
         if (currentBatch.length === BATCH_SIZE || i === transcripts.length - 1) {
           batches.push(currentBatch);
-          currentBatch =;
+          currentBatch =[];
         }
       }
 
