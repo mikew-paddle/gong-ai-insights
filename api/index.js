@@ -6,7 +6,7 @@ const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_ANON_KEY;
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-module.exports = async (req, res) => {
+export default async (req, res) => {
   try {
     const gongApiKey = process.env.GONG_API_KEY;
     const gongApiEndpoint = 'https://api.gong.io/v2/calls/transcript'; // Correct endpoint with filtering
