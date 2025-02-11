@@ -55,6 +55,7 @@ export default async (req, res) => {
       nextCursor = transcriptsData.records.cursor;
 
       console.log("Current batch of transcripts:", transcripts);
+      console.log("Records data:", transcriptsData.records);
       console.log("Next Cursor:", nextCursor);
 
       // --- Save transcripts to Supabase (with batch insertion and check for existing call_id) ---
@@ -102,8 +103,6 @@ export default async (req, res) => {
 
     }  while (nextCursor);
       // --- End of saving transcripts ---
-
-    console.log("Transcripts:", transcripts); // Check the structure of the transcripts data
 
     // 3. Process transcripts and summarize (IMPLEMENT THIS LOGIC)
     const summaries = {}; // Placeholder for summaries
