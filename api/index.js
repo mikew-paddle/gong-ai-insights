@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import fetch from 'node-fetch';
+import OpenAI from 'openai'; 
 
 // Supabase setup
 const supabaseUrl = process.env.SUPABASE_URL;
