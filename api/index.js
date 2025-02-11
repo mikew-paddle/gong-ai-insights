@@ -5,6 +5,8 @@ import fetch from 'node-fetch';
 const supabaseUrl = process.env.SUPABASE_URL;
 const supabase = createClient(supabaseUrl, process.env.SUPABASE_SERVICE_ROLE_KEY);
 
+const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+
 const BATCH_SIZE = 25;
 
 export default async (req, res) => {
@@ -117,7 +119,7 @@ export default async (req, res) => {
 
     */
 
-    
+
     // --- Fetch User Interests ---
     const { data: userInterests, error: interestsError } = await supabase.rpc('unnest_interests');
 
@@ -135,17 +137,41 @@ export default async (req, res) => {
       Transcript: ${text}
       Return only the relevant topics as a JSON array.`;
 
+      console.log("Prompt:", prompt);
+
       try {
         const response = await openai.chat.completions.create({
           model: "gpt-4-turbo",
           messages: [{ role: "user", content: prompt }],
           response_format: "json",
         });
+        console.log("Response:", response);
 
         return JSON.parse(response.choices[0].message.content);
+
       } catch (error) {
         console.error("Error in Zero-Shot Classification:", error);
         return [];
+      }
+    }
+
+    //for (const transcriptData of allTranscripts) {
+      // const text = transcriptData.transcript.join(" "); // Convert transcript array into a single text block
+      const text = "I really dislike Paddle's Dashboard as it doesn't give me the data I need to run my business, however the boost to payment acceptance makes it worth it."
+      const matchedKeywords = await classifyTranscript(text, interestArray);
+
+      console.log("Matched keywords:", matchedKeywords);
+
+      /* if (matchedKeywords.length > 0) {
+        const { error } = await supabase
+          .from('call_transcripts')
+          .update({ matched_keywords: matchedKeywords })
+          .eq('call_id', transcriptData.callId);
+      
+        if (error) {
+          console.error(`Error updating transcript ${transcriptData.callId}:`, error);
+        }
+        */
       }
     }
 
