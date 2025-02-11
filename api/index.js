@@ -12,7 +12,7 @@ export default async (req, res) => {
     const accessKeySecret = process.env.GONG_ACCESS_KEY_SECRET;
 
     // Construct the basic auth string
-    const basicAuthString = `<span class="math-inline">\{accessKey\}\:</span>{accessKeySecret}`;
+    const basicAuthString = `${accessKey}:${accessKeySecret}`;
 
     // Encode the basic auth string in Base64
     const base64EncodedAuth = Buffer.from(basicAuthString).toString('base64');
