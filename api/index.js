@@ -142,7 +142,7 @@ export default async (req, res) => {
 
       try {
         const response = await openai.chat.completions.create({
-          model: "gpt-4-turbo",
+          model: "gpt-4o",
           messages: [{ role: "user", content: prompt }],
           response_format: "json",
         });
