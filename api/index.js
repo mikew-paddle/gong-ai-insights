@@ -52,7 +52,7 @@ export default async (req, res) => {
       .from('call_transcripts')
       .select('call_id')
       .eq('call_id', transcript.callId)
-      .single(); // Fetch only one row (if it exists)
+      .maybeSingle(); // Fetch only one row (if it exists)
 
       if (checkError) {
         console.error("Error checking for existing call_id:", checkError);
