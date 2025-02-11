@@ -90,7 +90,7 @@ export default async (req, res) => {
 
         currentBatch.push({
           call_id: transcripts[i].callId,
-          transcript: JSON.stringify(transcripts[i].transacript),
+          transcript: JSON.stringify(transcripts[i].transcript),
         });
 
         if (currentBatch.length === BATCH_SIZE || i === transcripts.length - 1) {
