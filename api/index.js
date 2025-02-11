@@ -117,7 +117,9 @@ export default async (req, res) => {
     const { data: userInterests, error } = await supabase
     .rpc('unnest_interests')
 
-    console.log("User interests full list:", userInterests);
+    const interestArray = userInterests.map(row => row.interest);
+
+    console.log("User interests full list:", interestArray);
 
     if (error) {
       console.error("Error fetching user interests:", error);
