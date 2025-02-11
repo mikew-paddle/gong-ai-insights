@@ -99,6 +99,8 @@ export default async (req, res) => {
           console.error("Error saving batch:", error);
         }
       }
+
+    }  while (nextCursor);
       // --- End of saving transcripts ---
 
     console.log("Transcripts:", transcripts); // Check the structure of the transcripts data
@@ -148,6 +150,7 @@ export default async (req, res) => {
 
 
     res.status(200).json({ message: 'Processing complete' });
+
   } catch (error) {
     console.error('Error in Vercel function:', error);
     res.status(500).json({ error: error.message });
