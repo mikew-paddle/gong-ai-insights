@@ -24,6 +24,9 @@ export default async (req, res) => {
     const fromDateTime = req.query.fromDateTime || "2025-02-10T00:00:00-08:00"; // Default value if not provided
     const toDateTime = req.query.toDateTime || "2025-02-11T00:00:00-08:00"; // Default value if not provided
 
+    console.log("From date:", fromDateTime);
+    console.log("To date:", toDateTime);
+
     let nextCursor = null;
     let allTranscripts =[];
 
@@ -159,3 +162,4 @@ export default async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
