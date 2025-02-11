@@ -20,14 +20,18 @@ export default async (req, res) => {
 
     const gongApiEndpoint = 'https://api.gong.io/v2/calls/transcript'; // Correct endpoint with filtering
 
+    // --- Get fromDateTime and toDateTime from query parameters ---
+    const fromDateTime = req.query.fromDateTime || "2025-02-10T00:00:00-08:00"; // Default value if not provided
+    const toDateTime = req.query.toDateTime || "2025-02-11T00:00:00-08:00"; // Default value if not provided
+
     let nextCursor = null;
     let allTranscripts =[];
 
     do {
       const requestBody = {
         filter: {
-          fromDateTime: "2025-02-10T00:00:00-08:00",
-          toDateTime: "2025-02-11T00:00:00-08:00"
+          fromDateTime: fromDateTime,
+          toDateTime: toDateTime
         },
         cursor: nextCursor,
         pageSize: BATCH_SIZE,
