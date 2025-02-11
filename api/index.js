@@ -114,10 +114,13 @@ export default async (req, res) => {
     //const summaries = {}; // Placeholder for summaries
 
     // 4. Retrieve user interests from Supabase
-    const { data: userInterests, error } = await supabase
+    const { data: interestData, error: interestError } = await supabase
     .from('user_interests')
-    .select('unnest(interests) AS unique_interests')
-    .distinct();
+    .select(`
+        unnest(
+          (SELECT array_agg(DISTINCT "interest") FROM (SELECT unnest(interests) AS "interest" FROM user_interests) AS distinct_interests)
+        ) AS unique_interests
+      `);
 
     console.log("User interests full list:", userInterests);
 
