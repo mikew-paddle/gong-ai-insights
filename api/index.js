@@ -62,7 +62,6 @@ export default async (req, res) => {
       nextCursor = transcriptsData.records.cursor;
 
       console.log("Current batch of transcripts count:", transcripts.length);
-      console.log("Current batch of transcripts:", transcripts);
       console.log("Records data:", transcriptsData.records);
       console.log("Next Cursor:", nextCursor);
 
@@ -95,7 +94,6 @@ export default async (req, res) => {
 
         if (currentBatch.length === BATCH_SIZE || i === transcripts.length - 1) {
           batches.push(currentBatch);
-          console.log("CurrentBatches:", batches);
           currentBatch =[];
         }
       }
@@ -104,7 +102,6 @@ export default async (req, res) => {
         const { error } = await supabase
         .from('call_transcripts')
         .insert(batch);
-        console.log("Batch inserted:", batch);
         if (error) {
           console.error("Error saving batch:", error);
         }
