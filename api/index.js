@@ -41,9 +41,45 @@ export default async (req, res) => {
     }
 
     const transcriptsData = await response.json();
-
-    // The structure of transcriptsData might vary; adjust accordingly
     const transcripts = transcriptsData.callTranscripts;
+
+    console.log("Transcripts:", transcripts);
+
+// --- Save transcripts to Supabase (with check for existing call_id) ---
+    for (const transcript of transcripts) {
+      // Check if call_id already exists
+      const { data: existingTranscript, error: checkError } = await supabase
+      .from('call_transcripts')
+      .select('call_id')
+      .eq('call_id', transcript.callId)
+      .single(); // Fetch only one row (if it exists)
+
+      if (checkError) {
+        console.error("Error checking for existing call_id:", checkError);
+        // Handle the error as needed (e.g., skip to the next transcript)
+        continue;
+      }
+
+      if (existingTranscript) {
+        console.log(`Call ${transcript.callId} already exists in the database. Skipping.`);
+        continue; // Skip to the next transcript if it already exists
+      }
+
+      // If the call_id doesn't exist, insert the transcript
+      const { error: insertError } = await supabase
+      .from('call_transcripts')
+      .insert([
+          {
+            call_id: transcript.callId,
+            transcript: JSON.stringify(transcript),
+          }
+        ]);
+
+      if (insertError) {
+        console.error("Error saving transcript:", insertError);
+      }
+    }
+    // --- End of saving transcripts ---
 
     console.log("Transcripts:", transcripts); // Check the structure of the transcripts data
 
