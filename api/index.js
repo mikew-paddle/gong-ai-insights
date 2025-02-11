@@ -52,7 +52,7 @@ export default async (req, res) => {
 
       allTranscripts = allTranscripts.concat(transcripts);
 
-      nextCursor = transcriptsData.cursor;
+      nextCursor = transcriptsData.records.cursor;
 
       console.log("Current batch of transcripts:", transcripts);
       console.log("Next Cursor:", nextCursor);
