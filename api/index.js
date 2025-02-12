@@ -1,6 +1,8 @@
 import { createClient } from '@supabase/supabase-js';
 import fetch from 'node-fetch';
 import OpenAI from 'openai'; 
+import { z } from "zod";
+import { zodResponseFormat } from "openai/helpers/zod";
 
 // Supabase setup
 const supabaseUrl = process.env.SUPABASE_URL;
@@ -156,10 +158,41 @@ export default async (req, res) => {
       }
     }
 
+    const TranscriptAnalysisSchema = z.object({
+      call_id: z.string(),
+      matches: z.array(
+        z.object({
+          keyword: z.string(),
+          summary: z.string(),
+        })
+      ),
+    });
+
+    async function classifyTranscriptWithStructuredOutput(text, keywords, callId) {
+        try {
+            const completion = await openai.beta.chat.completions.create({
+              model: "gpt-4o-2024-08-06",
+              messages: [
+                { role: "system", content: "You are an expert research analyst analysing a call transript for matches to relevant topic. The topics are provided to you as keywords. Analyze the call transcript for topics matching the keywords and provide a very short summary of what was discussed regarding the topic (max 100 characters) per keyword matched. If you don't find any matches to the keywords return null." },
+     //           { role: "user", content: `Transcript: ${text}\n\nIdentify any topics from this list: ${keywords.join(", ")}.` }
+                { role: "user", content: `Transcript: ${text}\n\nIdentify any topics from this list: ${keywords.join(", ")}.` }
+              ],
+              response_format: zodResponseFormat(TranscriptAnalysisSchema, "call_analysis"), // ✅ Structured Output
+            });
+
+            return completion.choices[0].message.parsed;
+          } catch (error) {
+            console.error("Error in Zero-Shot Classification:", error);
+            return { call_id: callId, matches: [] };
+          }
+      }
+
+
+
     //for (const transcriptData of allTranscripts) {
       // const text = transcriptData.transcript.join(" "); // Convert transcript array into a single text block
       const text = "I really dislike Paddle's Dashboard as it doesn't give me the data I need to run my business, however the boost to payment acceptance makes it worth it."
-      const matchedKeywords = await classifyTranscript(text, interestArray);
+      const matchedKeywords = await classifyTranscriptWithStructuredOutput(text, interestArray, "12345");
 
       console.log("Matched keywords:", matchedKeywords);
 
