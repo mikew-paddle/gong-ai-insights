@@ -14,7 +14,7 @@ const BATCH_SIZE = 25;
 
 export default async (req, res) => {
   try {
-    /* 
+    
 
     const accessKey = process.env.GONG_ACCESS_KEY;
     const accessKeySecret = process.env.GONG_ACCESS_KEY_SECRET;
@@ -94,10 +94,15 @@ export default async (req, res) => {
           continue;
         }
 
+        const transcriptText = transcripts[i].transcript
+          .flatMap(speaker => speaker.sentences.map(sentence => sentence.text))
+          .join(" ");
+
         currentBatch.push({
           call_id: transcripts[i].callId,
-          transcript: JSON.stringify(transcripts[i].transcript),
+          transcript: transcriptText, 
         });
+
 
         if (currentBatch.length === BATCH_SIZE || i === transcripts.length - 1) {
           batches.push(currentBatch);
@@ -120,7 +125,7 @@ export default async (req, res) => {
     // 3. Process transcripts and summarize (IMPLEMENT THIS LOGIC)
     //const summaries = {}; // Placeholder for summaries
 
-    */
+    
 
 
     // --- Fetch User Interests ---
@@ -177,6 +182,7 @@ export default async (req, res) => {
      //           { role: "user", content: `Transcript: ${text}\n\nIdentify any topics from this list: ${keywords.join(", ")}.` }
                 { role: "user", content: `Transcript: ${text}\n\nIdentify any topics from this list: ${keywords.join(", ")}.` }
               ],
+              store: true,
               response_format: zodResponseFormat(TranscriptAnalysisSchema, "call_analysis"), // ✅ Structured Output
             });
 
