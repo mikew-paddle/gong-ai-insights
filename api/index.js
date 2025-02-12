@@ -170,7 +170,7 @@ export default async (req, res) => {
 
     async function classifyTranscriptWithStructuredOutput(text, keywords, callId) {
         try {
-            const completion = await openai.beta.chat.completions.create({
+            const completion = await openai.beta.chat.completions.parse({
               model: "gpt-4o-2024-08-06",
               messages: [
                 { role: "system", content: "You are an expert research analyst analysing a call transript for matches to relevant topic. The topics are provided to you as keywords. Analyze the call transcript for topics matching the keywords and provide a very short summary of what was discussed regarding the topic (max 100 characters) per keyword matched. If you don't find any matches to the keywords return null." },
