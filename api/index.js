@@ -69,15 +69,16 @@ export default async (req, res) => {
 
       nextCursor = transcriptsData.records.cursor;
 
-      console.log("Current batch of transcripts count:", transcripts.length);
-      console.log("Records data:", transcriptsData.records);
-      console.log("Next Cursor:", nextCursor);
+      //console.log("Current batch of transcripts count:", transcripts.length);
+      //console.log("Records data:", transcriptsData.records);
+      //console.log("Next Cursor:", nextCursor);
 
       // --- Save transcripts to Supabase (with batch insertion and check for existing call_id) ---
       const batches =[];
       let currentBatch =[];
 
       for (let i = 0; i < transcripts.length; i++) {
+        
         // Check if call_id already exists
         const { data: existingTranscript, error: checkError } = await supabase
         .from('call_transcripts')
@@ -96,10 +97,6 @@ export default async (req, res) => {
         }
 
         const transcriptText = transcripts[i].transcript
-          .flatMap(speaker => speaker.sentences.map(sentence => sentence.text))
-          .join(" ");
-
-        console.log(`Transacript text:`, transcriptText);
 
         currentBatch.push({
           call_id: transcripts[i].callId,
@@ -113,6 +110,7 @@ export default async (req, res) => {
         }
       }
 
+      // insert to database
       for (const batch of batches) {
         const { error } = await supabase
         .from('call_transcripts')
@@ -172,6 +170,8 @@ export default async (req, res) => {
         z.object({
           keyword: z.string(),
           summary: z.string(),
+          timestamp: z.number(), // Most relevant timestamp in milliseconds
+          link: z.string().url(), // Gong call link with timestamp
         })
       ),
     });
@@ -181,8 +181,7 @@ export default async (req, res) => {
             const completion = await openai.beta.chat.completions.parse({
               model: "gpt-4o-2024-08-06",
               messages: [
-                { role: "system", content: "You are an expert research analyst analysing a call transript for matches to relevant topic. The topics are provided to you as keywords. Analyze the call transcript for topics matching the keywords and provide a very short summary of what was discussed regarding the topic (max 100 characters) per keyword matched. If you don't find any matches to the keywords return null." },
-     //           { role: "user", content: `Transcript: ${text}\n\nIdentify any topics from this list: ${keywords.join(", ")}.` }
+                { role: "system", content: "You are an expert research analyst analysing a call transript for matches to relevant topic. The topics are provided to you as keywords. You are given a json object which contains the transcript split into sentences each with a start and end timestamp, as well as the text of what was said. Analyze the call transcript sentence text for topics matching the keywords and provide a very short summary of what was discussed regarding the topic (max 200 characters) per keyword matched. Also provide the more relevant timestamp at which someone would want to start watching to call back to see what was discussed related to the keyword, as well as a link to the call in the format 'https://us.app.gong.io/call?id=${call_id}&highlights=%5B%7B%22from%22%3A[timestamp]%7D%5D'. If you don't find any matches to the keywords return null." },
                 { role: "user", content: `Transcript: ${text}\n\nIdentify any topics from this list: ${keywords.join(", ")}.` }
               ],
               store: true,
