@@ -42,7 +42,7 @@ export default async (req, res) => {
         filter: {
           fromDateTime: fromDateTime,
           toDateTime: toDateTime,
-          callIds: '7651631180145571239'
+          callIds: ['7651631180145571239']
         },
         cursor: nextCursor,
         pageSize: BATCH_SIZE,
